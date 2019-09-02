@@ -1,22 +1,22 @@
 <template>
     <div class="container chat">
-        <h2 class="text-primary text-center"> Real Time Chat </h2>
-        <h5 class="text-secondary text-center"> Vue jS & Firebase </h5>
+        <h2 class="text-primary text-center">Real-Time Chat</h2>
+        <h5 class="text-secondary text-center">Powered by Vue.js & Firebase</h5>
         <div class="card">
             <div class="card-body">
-                <p class="text-secondary no-messages" v-if="message.length == 0">
-                    [No Messages Yet!]
+                <p class="text-secondary nomessages" v-if="messages.length == 0">
+                    [No messages yet!]
                 </p>
                 <div class="messages" v-chat-scroll="{always: false, smooth: true}">
                     <div v-for="message in messages" :key="message.id">
-                        <span class="text-info">[{{ message.name }}] </span>
-                        <span> {{ message.message }}</span>
-                        <span class="text-secondary time">{{ message.timestamp }}</span>
+                        <span class="text-info">[{{ message.name }}]: </span>
+                        <span>{{message.message}}</span>
+                        <span class="text-secondary time">{{message.timestamp}}</span>
                     </div>
                 </div>
-                <div class="card-action">
-                    <CreateMessage :name="name"></CreateMessage>
-                </div>
+            </div>
+            <div class="card-action">
+                <CreateMessage :name="name"/>
             </div>
         </div>
     </div>
@@ -24,59 +24,62 @@
 
 <script>
 import CreateMessage from '@/components/CreateMessage';
-import FB from '@/firebase/init';
-import Moment from 'moment';
+import fb from '@/firebase/init';
+import moment from 'moment';
 
 export default {
     name: 'Chat',
     props: ['name'],
-    components: { CreateMessage },
+    components: {
+        CreateMessage
+    },
     data() {
         return {
-            message: []
+            messages: []
         }
     },
     created() {
-        let ref = FB.collection('messages').orderBy('timestamp');
-        ref.onSnapshort(snapshort => {
-            snapshort.docChanges().forEach(change => {
-                if(change.type = 'added') {
+        let ref = fb.collection('messages').orderBy('timestamp');
+
+        ref.onSnapshot(snapshot => {
+            snapshot.docChanges().forEach(change => {
+                if (change.type = 'added') {
                     let doc = change.doc;
                     this.messages.push({
                         id: doc.id,
                         name: doc.data().name,
                         message: doc.data().message,
-                        timestamp: moment(doc.data().timestamp).format('LTS')
-                    })
+                        timestamp: moment(doc.data().timestamp).locale('th').format('LT')
+                    });
                 }
-            })
-        })
+            });
+        });
     }
 }
 </script>
 
 <style>
-    .chat h2 {
-        font-size: 2.6em;
-        margin-bottom: 0px;
-    }
+.chat h2{
+    font-size: 2.6em;
+    margin-bottom: 0px;
+}
 
-    .chat h5 {
-        margin-top : 0px;
-        margin-bottom: 40px;
-    }
+.chat h5{
+    margin-top: 0px;
+    margin-bottom: 40px;
+}
 
-    .chat span {
-        font-size: 1.2em;
-    }
+.chat span{
+    font-size: 1.2em;
+}
 
-    .chat .time {
-        display: block;
-        font-size: 0.7em;
-    }
+.chat .time{
+    display: block;
+    font-size: 0.7em;
+}
 
-    .messages {
-        max-height: 300px;
-        overflow: auto;
-    }
+.messages{
+    max-height: 300px;
+    overflow: auto;
+}
 </style>
